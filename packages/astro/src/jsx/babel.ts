@@ -2,7 +2,6 @@ import type { PluginObj } from '@babel/core';
 import * as t from '@babel/types';
 import { resolvePath } from '../core/util.js';
 import { HydrationDirectiveProps } from '../runtime/server/hydration.js';
-import { FLAG } from '../vite-plugin-asset-ssr/index.js';
 import type { PluginMetadata } from '../vite-plugin-astro/types';
 
 const ClientOnlyPlaceholder = 'astro-client-only';
@@ -183,7 +182,7 @@ export default function astroJSX(): PluginObj {
 				const node = path.node;
 				// Skip automatic `_components` in MDX files
 				if (
-					(state.filename?.endsWith('.mdx') || state.filename?.endsWith('.mdx' + FLAG)) &&
+					state.filename?.endsWith('.mdx') &&
 					t.isJSXIdentifier(node.object) &&
 					node.object.name === '_components'
 				) {
