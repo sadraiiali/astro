@@ -28,7 +28,7 @@ export async function staticBuild(opts: StaticBuildOptions) {
 
 	// Verify this app is buildable.
 	if (isModeServerWithNoAdapter(opts.settings)) {
-		throw new Error(`Cannot use \`output: 'server'\` without an adapter.
+		throw new Error(`Cannot use \`output: '${opts.settings.config.output}'\` without an adapter.
 Install and configure the appropriate server adapter for your final deployment.
 Learn more: https://docs.astro.build/en/guides/server-side-rendering/
 
@@ -97,21 +97,33 @@ Learn more: https://docs.astro.build/en/guides/server-side-rendering/
 	await clientBuild(opts, internals, clientInput);
 
 	timer.generate = performance.now();
-	if (settings.config.output === 'static') {
-		await generatePages(opts, internals);
-		await cleanSsrOutput(opts);
-	} else {
-		// Inject the manifest
-		await injectManifest(opts, internals);
-
-		info(opts.logging, null, `\n${bgMagenta(black(' finalizing server assets '))}\n`);
-		await ssrMoveAssets(opts);
+	switch (settings.config.output) {
+		case 'static': {
+			await generatePages(opts, internals);
+			await cleanSsrOutput(opts);
+			return;
+		}
+		case 'server': {
+			// Inject the manifest
+			await injectManifest(opts, internals);
+			info(opts.logging, null, `\n${bgMagenta(black(' finalizing server assets '))}\n`);
+			await ssrMoveAssets(opts);
+			return;
+		}
+		case 'hybrid': {
+			await injectManifest(opts, internals);
+			await generatePages(opts, internals);
+			// await cleanSsrOutput(opts);
+			info(opts.logging, null, `\n${bgMagenta(black(' finalizing server assets '))}\n`);
+			// await ssrMoveAssets(opts);
+			return;
+		}
 	}
 }
 
 async function ssrBuild(opts: StaticBuildOptions, internals: BuildInternals, input: Set<string>) {
 	const { settings, viteConfig } = opts;
-	const ssr = settings.config.output === 'server';
+	const ssr = settings.config.output !== 'static';
 	const out = ssr ? opts.buildConfig.server : getOutDirWithinCwd(settings.config.outDir);
 
 	const viteBuildConfig: vite.InlineConfig = {
@@ -151,7 +163,7 @@ async function ssrBuild(opts: StaticBuildOptions, internals: BuildInternals, inp
 			}),
 			...(viteConfig.plugins || []),
 			// SSR needs to be last
-			settings.config.output === 'server' && vitePluginSSR(internals, settings.adapter!),
+			ssr && vitePluginSSR(internals, settings.adapter!),
 			vitePluginAnalyzer(internals),
 		],
 		publicDir: ssr ? false : viteConfig.publicDir,

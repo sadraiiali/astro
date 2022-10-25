@@ -194,7 +194,7 @@ class AstroBuilder {
 		logging: LogOptions;
 		timeStart: number;
 		pageCount: number;
-		buildMode: 'static' | 'server';
+		buildMode: 'static' | 'server' | 'hybrid';
 	}) {
 		const total = getTimeStat(timeStart, performance.now());
 

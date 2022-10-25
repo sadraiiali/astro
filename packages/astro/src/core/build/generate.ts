@@ -73,7 +73,7 @@ export async function generatePages(opts: StaticBuildOptions, internals: BuildIn
 	const timer = performance.now();
 	info(opts.logging, null, `\n${bgGreen(black(' generating static routes '))}`);
 
-	const ssr = opts.settings.config.output === 'server';
+	const ssr = opts.settings.config.output !== 'static';
 	const serverEntry = opts.buildConfig.serverEntry;
 	const outFolder = ssr ? opts.buildConfig.server : getOutDirWithinCwd(opts.settings.config.outDir);
 	const ssrEntryURL = new URL('./' + serverEntry + `?time=${Date.now()}`, outFolder);
@@ -100,6 +100,8 @@ async function generatePage(
 	ssrEntry: SingleFileBuiltModule,
 	builtPaths: Set<string>
 ) {
+	if (pageData.output === 'server') return;
+
 	let timeStart = performance.now();
 	const renderers = ssrEntry.renderers;
 
@@ -107,7 +109,7 @@ async function generatePage(
 	const linkIds: string[] = sortedCSS(pageData);
 	const scripts = pageInfo?.hoistedScript ?? null;
 
-	const pageModule = ssrEntry.pageMap.get(pageData.component);
+	const pageModule = ssrEntry.pageMap?.get(pageData.component);
 
 	if (!pageModule) {
 		throw new Error(
@@ -322,7 +324,7 @@ async function generatePath(
 		}
 	}
 
-	const ssr = settings.config.output === 'server';
+	const ssr = settings.config.output !== 'static';
 	const url = getUrlForPath(
 		pathname,
 		opts.settings.config.base,
