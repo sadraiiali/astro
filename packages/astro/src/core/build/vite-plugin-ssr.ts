@@ -41,6 +41,7 @@ const _manifest = Object.assign(_deserializeManifest('${manifestReplace}'), {
 	renderers: _main.renderers
 });
 const _args = ${adapter.args ? JSON.stringify(adapter.args) : 'undefined'};
+export const $$manifest = _manifest;
 
 ${
 	adapter.exports
@@ -134,6 +135,7 @@ function buildManifest(
 
 	for (const pageData of eachPageData(internals)) {
 		const scripts: SerializedRouteInfo['scripts'] = [];
+		if (pageData.output !== 'server') continue;
 		if (pageData.hoistedScript) {
 			scripts.unshift(pageData.hoistedScript);
 		}
