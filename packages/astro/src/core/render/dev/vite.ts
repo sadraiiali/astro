@@ -1,5 +1,6 @@
 import npath from 'path';
 import vite from 'vite';
+import { DELAYED_ASSET_FLAG } from '../../../vite-plugin-asset-ssr/index.js';
 import { unwrapId } from '../../util.js';
 import { STYLE_EXTENSIONS } from '../util.js';
 
@@ -20,6 +21,8 @@ export async function* crawlGraph(
 ): AsyncGenerator<vite.ModuleNode, void, unknown> {
 	const id = unwrapId(_id);
 	const importedModules = new Set<vite.ModuleNode>();
+	if (id.endsWith(DELAYED_ASSET_FLAG)) return;
+
 	const moduleEntriesForId = isRootFile
 		? // "getModulesByFile" pulls from a delayed module cache (fun implementation detail),
 		  // So we can get up-to-date info on initial server load.
